@@ -22,7 +22,11 @@ class BusinessCell: UITableViewCell {
     var business: Business! {
       didSet {
         nameLabel.text = business.name
-        avatarImg.setImageWith(business.imageURL!)
+        if business.imageURL != nil{
+            avatarImg.setImageWith(business.imageURL!)
+        } else {
+            avatarImg.image = nil
+        }
         categoryLabel.text = business.categories
         addressLabel.text = business.address
         reviewLabel.text = "\(business.reviewCount!) Reviews"
@@ -36,6 +40,8 @@ class BusinessCell: UITableViewCell {
       
         avatarImg.layer.cornerRadius = 6
         avatarImg.clipsToBounds = true
+        avatarImg.layer.borderWidth = 1
+        avatarImg.layer.borderColor = UIColor.darkGray.cgColor
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {

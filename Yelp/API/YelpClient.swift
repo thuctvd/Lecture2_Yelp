@@ -45,11 +45,11 @@ class YelpClient: BDBOAuth1RequestOperationManager {
         self.requestSerializer.saveAccessToken(token)
     }
 
-    func search(with term: String, completion: @escaping ([Business]?, Error?) -> ()) -> AFHTTPRequestOperation {
-        return search(with: term, sort: nil, categories: nil, deals: nil, completion: completion)
+    func search(with term: String, completion: @escaping (SearchResult?, Error?) -> ()) -> AFHTTPRequestOperation {
+        return search(with: term, sort: nil, categories: nil, deals: nil, radius: nil, offset: nil,  completion: completion)
     }
 
-    func search(with term: String, sort: YelpSortMode?, categories: [String]?, deals: Bool?, completion: @escaping ([Business]?, Error?) -> ()) -> AFHTTPRequestOperation {
+    func search(with term: String, sort: YelpSortMode?, categories: [String]?, deals: Bool?, radius: Float?, offset: Int?, completion: @escaping (SearchResult?, Error?) -> ()) -> AFHTTPRequestOperation {
         // For additional parameters, see http://www.yelp.com/developers/documentation/v2/search_api
 
         // Default the location to San Francisco
@@ -66,14 +66,24 @@ class YelpClient: BDBOAuth1RequestOperationManager {
         if deals != nil {
             parameters["deals_filter"] = deals! as AnyObject?
         }
+        
+        if radius != nil {
+            parameters["radius_filter"] = radius! as AnyObject?
+        }
+        
+        if offset != nil {
+            parameters["offset"] = offset! as AnyObject?
+        }
 
         print(parameters)
 
         return self.get("search", parameters: parameters, success: { (operation: AFHTTPRequestOperation, response: Any) in
             if let response = response as? NSDictionary {
+                let total = response["total"] as? Int
                 let dictionaries = response["businesses"] as? [NSDictionary]
                 if dictionaries != nil {
-                    completion(Business.businesses(array: dictionaries!), nil)
+                    let result = SearchResult(total: total!, businesses: Business.businesses(array: dictionaries!))
+                    completion(result, nil)
                 }
             }
             }, failure: { (operation: AFHTTPRequestOperation?, error: Error) in
